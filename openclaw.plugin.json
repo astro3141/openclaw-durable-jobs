@@ -1,0 +1,449 @@
+{
+  "id": "durable-jobs",
+  "name": "Durable Jobs",
+  "description": "Runs long commands outside an agent turn, persists lifecycle state, and delivers a deterministic terminal notice to the frozen Slack route via a persistent outbox.",
+  "version": "0.6.0-dev.6",
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": [
+      "durable_job",
+      "workflow"
+    ]
+  },
+  "toolMetadata": {
+    "durable_job": {
+      "replaySafe": false
+    },
+    "workflow": {
+      "replaySafe": false
+    }
+  },
+  "skills": [
+    "./skills"
+  ],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "stateSubdir": {
+        "type": "string",
+        "minLength": 1,
+        "default": "durable-jobs"
+      },
+      "allowedRoots": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "default": []
+      },
+      "owners": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "agentId",
+            "workspaceDir"
+          ],
+          "properties": {
+            "agentId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sessionKey": {
+              "type": "string",
+              "minLength": 1
+            },
+            "workspaceDir": {
+              "type": "string",
+              "minLength": 1
+            },
+            "allowedRoots": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "default": []
+            },
+            "deliveryRoute": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "routeKind",
+                "channel",
+                "to"
+              ],
+              "properties": {
+                "routeKind": {
+                  "type": "string",
+                  "enum": [
+                    "channel_root"
+                  ]
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "slack"
+                  ]
+                },
+                "to": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "accountId": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "default": []
+      },
+      "ownerAgentId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "ownerSessionKey": {
+        "type": "string",
+        "minLength": 1
+      },
+      "deliveryRoute": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "routeKind",
+          "channel",
+          "to"
+        ],
+        "properties": {
+          "routeKind": {
+            "type": "string",
+            "enum": [
+              "channel_root"
+            ]
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "slack"
+            ]
+          },
+          "to": {
+            "type": "string",
+            "minLength": 1
+          },
+          "accountId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "workspaceDir": {
+        "type": "string",
+        "minLength": 1
+      },
+      "openclawCommand": {
+        "type": "string",
+        "minLength": 1,
+        "default": "openclaw"
+      },
+      "pollIntervalMs": {
+        "type": "integer",
+        "minimum": 250,
+        "maximum": 60000,
+        "default": 2000
+      },
+      "queuedGraceMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 600000,
+        "default": 30000
+      },
+      "maxConcurrent": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 32,
+        "default": 4
+      },
+      "defaultTimeoutSeconds": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 604800,
+        "default": 0
+      },
+      "completionAcpWakeup": {
+        "type": "boolean",
+        "default": false
+      },
+      "deliveryMaxAttempts": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 64,
+        "default": 8
+      },
+      "sendLeaseMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 600000,
+        "default": 30000
+      },
+      "continuationEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "workflowEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "workflowAuditEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "workflowProviderCacheTtlMs": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 86400000,
+        "default": 300000
+      },
+      "workflowProviderNegativeCacheTtlMs": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 3600000,
+        "default": 30000
+      },
+      "workflowProviderUnknownCacheTtlMs": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 600000,
+        "default": 5000
+      },
+      "workflowPreflightTimeoutMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 600000,
+        "default": 15000
+      },
+      "workflowFingerprintMaxFiles": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200000,
+        "default": 5000
+      },
+      "workflowFingerprintMaxBytes": {
+        "type": "integer",
+        "minimum": 1024,
+        "maximum": 4294967296,
+        "default": 268435456
+      },
+      "continuationTimeoutMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 3600000,
+        "default": 120000
+      },
+      "continuationDispatchLeaseMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 600000,
+        "default": 60000
+      },
+      "continuationMaxAttempts": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 16,
+        "default": 1
+      },
+      "heartbeatIntervalMs": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 600000,
+        "default": 5000
+      },
+      "runnerObservability": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "model_agy": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "heartbeatIntervalMs": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 600000
+              },
+              "silenceBudgetMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmSignal": {
+                "type": "string",
+                "enum": [
+                  "cpu"
+                ]
+              }
+            }
+          },
+          "local_test": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "heartbeatIntervalMs": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 600000
+              },
+              "silenceBudgetMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmSignal": {
+                "type": "string",
+                "enum": [
+                  "cpu"
+                ]
+              }
+            }
+          },
+          "local_build": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "heartbeatIntervalMs": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 600000
+              },
+              "silenceBudgetMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmSignal": {
+                "type": "string",
+                "enum": [
+                  "cpu"
+                ]
+              }
+            }
+          },
+          "local_docker": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "heartbeatIntervalMs": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 600000
+              },
+              "silenceBudgetMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmSignal": {
+                "type": "string",
+                "enum": [
+                  "cpu"
+                ]
+              }
+            }
+          },
+          "generic_local": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "heartbeatIntervalMs": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 600000
+              },
+              "silenceBudgetMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 3600000
+              },
+              "stallConfirmSignal": {
+                "type": "string",
+                "enum": [
+                  "cpu"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "uiHints": {
+    "owners": {
+      "label": "Owning agent sessions",
+      "help": "Context-free ACP calls are routed to the exact owner whose workspace contains cwd."
+    },
+    "allowedRoots": {
+      "label": "Allowed working roots",
+      "help": "Commands may only start in these directory trees. The configured owner workspace is also allowed."
+    },
+    "ownerAgentId": {
+      "label": "Owning agent",
+      "help": "Only this agent may own durable jobs from a context-free MCP bridge."
+    },
+    "ownerSessionKey": {
+      "label": "Owning session key",
+      "help": "Completion is delivered only to this exact session when MCP provides no session context."
+    },
+    "workspaceDir": {
+      "label": "Owning workspace"
+    },
+    "openclawCommand": {
+      "label": "OpenClaw executable",
+      "help": "Absolute path recommended. Used only to submit the idempotent completion turn to the local Gateway.",
+      "advanced": true
+    },
+    "pollIntervalMs": {
+      "label": "Reconcile interval (ms)",
+      "advanced": true
+    },
+    "maxConcurrent": {
+      "label": "Maximum concurrent jobs"
+    },
+    "defaultTimeoutSeconds": {
+      "label": "Default timeout (seconds)",
+      "help": "0 means no timeout.",
+      "advanced": true
+    }
+  }
+}

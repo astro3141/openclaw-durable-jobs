@@ -1,0 +1,28 @@
+{
+  "name": "@local/openclaw-durable-jobs",
+  "version": "0.6.0-dev.6",
+  "description": "Durable detached jobs with Task Flow state and a persistent Slack delivery outbox (frozen route, at-least-once)",
+  "type": "module",
+  "license": "UNLICENSED",
+  "files": [
+    "dist/**",
+    "skills/**",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {},
+  "openclaw": {
+    "runtimeExtensions": [
+      "./dist/index.js"
+    ],
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.7.1"
+    }
+  }
+}
